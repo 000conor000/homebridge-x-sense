@@ -240,17 +240,33 @@ export class XsenseApi extends EventEmitter {
     for (const house of houses) {
       const stationData = await this.apiCall<any>('103007', { houseId: house.houseId, utctimestamp: '0' });
       for (const station of stationData.stations ?? []) {
-        for (const d of station.devices ?? []) {
+        if ((station.devices ?? []).length > 0) {
+          for (const d of station.devices) {
+            devices.push({
+              station_sn: station.stationSn,
+              station_name: station.stationName,
+              device_id: d.deviceId,
+              device_name: d.deviceName,
+              type_id: d.deviceType,
+              device_model: d.deviceModel ?? d.deviceType,
+              mqttServer: house.mqttServer ?? house.mqtt_server,
+              mqttRegion: house.mqttRegion ?? house.mqtt_region,
+              status: d.status ?? {},
+            });
+          }
+        } else {
+          // Standalone device (e.g. XS0B-iR) where the station itself is the device
+          this.log.debug(`Station ${station.stationSn} has no sub-devices, treating as standalone device (${station.category}).`);
           devices.push({
             station_sn: station.stationSn,
             station_name: station.stationName,
-            device_id: d.deviceId,
-            device_name: d.deviceName,
-            type_id: d.deviceType,
-            device_model: d.deviceModel ?? d.deviceType,
+            device_id: station.stationSn,
+            device_name: station.stationName,
+            type_id: 0,
+            device_model: station.category ?? 'unknown',
             mqttServer: house.mqttServer ?? house.mqtt_server,
             mqttRegion: house.mqttRegion ?? house.mqtt_region,
-            status: d.status ?? {},
+            status: { battery: 0, online: station.onLine ?? 0 },
           });
         }
       }

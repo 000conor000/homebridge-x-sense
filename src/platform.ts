@@ -56,8 +56,16 @@ export class XSenseHomebridgePlatform implements DynamicPlatformPlugin {
       const devices = await this.xsenseApi.getDeviceList();
       this.log.info(`Discovered ${devices.length} devices.`);
 
-      // Filter for actual sensors, not base stations which don't have their own sensors
-      const sensorDevices = devices.filter(d => d.device_id !== d.station_sn);
+      // Filter for actual sensors. Standalone devices (where device_id === station_sn)
+      // are kept if they have a known device model with capabilities.
+      const sensorDevices = devices.filter(d => {
+        if (d.device_id !== d.station_sn) {
+          return true; // Sub-device of a base station
+        }
+        // Standalone device — include if we recognise it
+        const caps = detectCapabilities(d.device_model);
+        return caps.length > 0;
+      });
       const cachedAccessories = [...this.accessories];
 
       this.log.info(`Found ${sensorDevices.length} sensor devices to register.`);
