@@ -13,7 +13,7 @@ export interface DeviceInfo {
   mqttServer?: string;
   mqttRegion?: string;
   status: {
-    battery: number;
+    battery?: number;
     online: number;
     // ... other status properties
   };

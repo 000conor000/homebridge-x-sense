@@ -266,7 +266,7 @@ export class XsenseApi extends EventEmitter {
             device_model: station.category ?? 'unknown',
             mqttServer: house.mqttServer ?? house.mqtt_server,
             mqttRegion: house.mqttRegion ?? house.mqtt_region,
-            status: { battery: 0, online: station.onLine ?? 0 },
+            status: { online: station.onLine ?? 0 },
           });
         }
       }
